@@ -1,93 +1,74 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+
+puppeteer.use(StealthPlugin());
+
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function scrapeIkeaProducts(url) {
+  let browser = null;
   try {
-    console.log(`Attempting to scrape: ${url}`);
-    const response = await axios.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Cache-Control': 'max-age=0'
+    console.log(`Launching browser...`);
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+
+    const page = await browser.newPage();
+    
+    // Set user agent to avoid detection
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+
+    // Enable request interception to speed up loading
+    await page.setRequestInterception(true);
+    page.on('request', (request) => {
+      if (['image', 'stylesheet', 'font'].includes(request.resourceType())) {
+        request.abort();
+      } else {
+        request.continue();
       }
     });
-    
-    console.log('Response received. Status:', response.status);
-    
-    const $ = cheerio.load(response.data);
-    const products = [];
 
-    console.log('Parsing HTML...');
-    
-    // Try multiple possible selectors
-    const productSelectors = [
-      '.product-compact', // Common IKEA product class
-      '[data-ref-id="product"]', // Alternative product identifier
-      '.product-fragment', // Another possible product wrapper
-      'div[class*="product"]' // Any div with 'product' in its class
-    ];
-    
-    for (const selector of productSelectors) {
-      $(selector).each((index, element) => {
-        const $element = $(element);
-        
-        // Try multiple possible selectors for each product attribute
-        const name = $element.find([
-          '.product-compact__name',
-          '.product__title',
-          'h2',
-          '[data-testid="product-title"]'
-        ].join(', ')).first().text().trim();
-        
-        const price = $element.find([
-          '.product-compact__price',
-          '.product__price',
-          '[data-testid="price"]',
-          'span[class*="price"]'
-        ].join(', ')).first().text().trim();
-        
-        const imageUrl = $element.find('img').first().attr('src') || 
-                         $element.find('img').first().attr('data-src');
-        
-        const productUrl = $element.find('a').first().attr('href');
+    console.log(`Navigating to ${url}`);
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
 
-        if (name || price || imageUrl || productUrl) {
-          products.push({
-            name: name || 'Name not found',
-            price: price || 'Price not found',
-            imageUrl: imageUrl || '',
-            productUrl: productUrl ? (productUrl.startsWith('http') ? productUrl : `https://www.ikea.com${productUrl}`) : '',
-          });
-        }
-      });
-      
-      if (products.length > 0) break; // If we found products, no need to try other selectors
+    console.log('Waiting for 5 seconds...');
+    await delay(5000);
+
+    const productSelector = '.product-compact, .product-fragment, [data-ref-id="product"]';
+    try {
+      await page.waitForSelector(productSelector, { timeout: 20000 });
+    } catch (error) {
+      console.log('Product selector not found, trying alternative approach...');
     }
+
+    const products = await page.evaluate((productSelector) => {
+      const productElements = document.querySelectorAll(productSelector);
+      if (productElements.length === 0) {
+        console.log('No product elements found');
+        return [];
+      }
+
+      return Array.from(productElements).map(element => {
+        const name = element.querySelector('.product-compact__name')?.textContent || 'No Name';
+        const price = element.querySelector('.product-compact__price__value')?.textContent || 'No Price';
+        const productUrl = element.querySelector('a')?.href || '';
+        const imageUrl = element.querySelector('img')?.src || '';
+
+        return { name, price, productUrl, imageUrl };
+      });
+    }, productSelector);
 
     console.log(`Found ${products.length} products`);
-    
-    if (products.length === 0) {
-      console.log('No products found. Attempting to identify page structure...');
-      // Log some diagnostic information
-      console.log('Page title:', $('title').text());
-      console.log('Main content area classes:', $('#main-content').attr('class'));
-      // Log all div elements with 'product' in their class names
-      $('div[class*="product"]').each((i, el) => {
-        console.log(`Potential product element ${i + 1}:`, $(el).attr('class'));
-      });
-    }
-
     return products;
+
   } catch (error) {
-    console.error('Error scraping IKEA products:', error.message);
-    if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response headers:', JSON.stringify(error.response.headers, null, 2));
-    }
+    console.error('Error scraping IKEA products:', error);
     throw error;
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 }
 

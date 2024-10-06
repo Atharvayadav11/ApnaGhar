@@ -1,14 +1,13 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import EmbedReactPlanner from './roommap';
 
 function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <></>
-  )
+    return (
+        <div className="App">
+            <h1>My React Vite App</h1>
+            <EmbedReactPlanner />
+        </div>
+    );
 }
 
-export default App
+export default App;
