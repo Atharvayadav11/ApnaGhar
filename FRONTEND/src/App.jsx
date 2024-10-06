@@ -5,6 +5,7 @@ import './App.css'
 import { Button } from './components/ui/button'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './components/pages/Home'
+import EmbedReactPlanner from './roommap';
 function App() {
 
   return (
@@ -16,4 +17,4 @@ function App() {
   )
 }
 
-export default App
+export default App;
