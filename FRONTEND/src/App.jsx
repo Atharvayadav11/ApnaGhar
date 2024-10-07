@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './components/pages/Home'
 import EmbedReactPlanner from './roommap';
 import Register from './components/pages/Register'
+import Planner from './components/pages/Planner'
 function App() {
 
   return (
@@ -14,6 +15,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/planner" element={< Planner/>} />
       </Routes>
     </BrowserRouter>
   )

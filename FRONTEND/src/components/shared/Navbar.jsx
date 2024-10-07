@@ -23,7 +23,7 @@ const Navbar = () => {
         <Button variant="ghost" className="rounded-full text-xl hover:bg-black hover:text-white h-13" onClick={handleHome}>HOME</Button>
         <Button variant="ghost" className="rounded-full text-xl hover:bg-black hover:text-white h-13" onClick={handleProd}>PRODUCTS</Button>
         <Button variant="ghost" className="rounded-full text-xl hover:bg-black hover:text-white h-13">FEATURES</Button>
-        <Button variant="ghost" className="rounded-full text-xl hover:bg-black hover:text-white h-13">DOCS</Button>
+        <Button variant="ghost" className="rounded-full text-xl hover:bg-black hover:text-white h-13">3D PLANNER</Button>
         <Button variant="ghost" className="rounded-full text-xl hover:bg-black hover:text-white h-13">BLOG</Button>
       </div>
       <Button variant="default" className="bg-black text-white hover:bg-gray-800 text-xl h-14 rounded-full hover:rounded-lg" onClick={handleReg}>

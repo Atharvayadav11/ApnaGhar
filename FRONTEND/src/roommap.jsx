@@ -6,7 +6,7 @@ const EmbedReactPlanner = () => {
         <div style={{ height: '100vh', overflow: 'hidden' }}>
             <iframe
                 src="https://cvdlab.github.io/react-planner"
-                style={{ width: '70%', height: '70%', border: 'none' }}
+                style={{ width: '100%', height: '90%', border: 'none',margin:'auto' }}
                 title="React Planner"
             />
         </div>
