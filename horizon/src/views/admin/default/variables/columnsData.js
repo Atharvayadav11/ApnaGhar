@@ -1,6 +1,6 @@
 export const columnsDataDevelopment = [
   {
-    Header: "CUSTOMER NAME",
+    Header: "Project Name",
     accessor: "name",
   },
   {
@@ -81,7 +81,7 @@ export const columnsDataColumns = [
 
 export const columnsDataComplex = [
   {
-    Header: "CUSTOMER NAME",
+    Header: "PROJECT NAME",
     accessor: "name",
   },
   {
@@ -89,19 +89,16 @@ export const columnsDataComplex = [
     accessor: "status",
   },
   {
-    Header: "DATE",
-    accessor: "date",
+    Header: "START DATE",
+    accessor: "start_date",
   },
   {
-    Header: "PROGRESS",
-    accessor: "progress",
+    Header: "END DATE",
+    accessor: "end_date",
   },
   {
-    Header: "VIEW DETAILS",
-    accessor: "viewDetails",
+    Header: "CUSTOMER",
+    accessor: "customer",
   },
-  {
-    Header: " ",
-    accessor: "d",
-  },
+  
 ];
