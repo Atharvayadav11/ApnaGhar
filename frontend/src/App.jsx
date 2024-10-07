@@ -1,7 +1,5 @@
-import React from 'react';
-
+import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
-
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
@@ -14,11 +12,15 @@ import Compare from './pages/Compare';
 import DallEPage from './pages/DallEPage';
 import Progress from './pages/Progress';
 import Explore from './pages/explore/Explore';
-import Progresss from './pages/Progress';
-// import Explore from './pages/Explore';
 
+// Import the new chat components
+import AuthPage from './pages/AuthPage';
+import ChatsPage from './pages/ChatsPage';
 
 const App = () => {
+  // State to manage user authentication for chat
+  const [user, setUser] = useState(undefined);
+
   return (
     <div className='px-24'>
       <Routes>
@@ -32,8 +34,20 @@ const App = () => {
         <Route path="/paint-cost" element={<PaintCost />} />
         <Route path='/compare' element={<Compare />} />
         <Route path='/dallE' element={<DallEPage />} />
-        <Route path='/progress' element={<Progresss/>}/>
-        <Route path='/explore' element={<Explore/>}/>
+        <Route path='/progress' element={<Progress />} />
+        <Route path='/explore' element={<Explore />} />
+        
+        {/* Chat Route */}
+        <Route
+          path="/chat"
+          element={
+            !user ? (
+              <AuthPage onAuth={(user) => setUser(user)} />
+            ) : (
+              <ChatsPage user={user} />
+            )
+          }
+        />
       </Routes>
     </div>
   );

@@ -1,7 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import avatar from "../../assets/avatar11.png";
-import banner from "../../assets/banner.png";
-import Card from "../components/card";
 import Header from "../components/Header";
 import axios from 'axios';
 import { columnsData } from "./variables/columns";
@@ -17,14 +14,10 @@ import {
 import PieChart from "../components/PieChart";
 
 const Progresss = () => {
-  
-
-    
-
   const [task, setTask] = useState([]);
   const [count, setCount] = useState(0);
   const [total, setTotal] = useState(0);
-  // console.log(id);
+
   const getTask = async () => {
     try {
       const res = await axios.get(
@@ -34,7 +27,7 @@ const Progresss = () => {
       res.data.progress = res.data.status;
 
     
-      // console.log(res.data);
+       console.log(res.data);
 
       const updatedData = res.data.map((item) => ({
         ...item,
@@ -54,7 +47,7 @@ const Progresss = () => {
 
   useEffect(() => {
     getTask();
-    // console.log(count);
+     console.log(count);
   }, [count]);
 
   console.log(task);
