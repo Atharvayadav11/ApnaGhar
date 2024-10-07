@@ -1,52 +1,57 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Chart from 'react-apexcharts';
 
+const PieGraph = () => {
+  // Define categories and static values
+  const categories = ["Flooring", "Painting", "Plumbing", "Wiring", "Furniture"];
+  const staticValues = [660, 440, 550, 570, 560]; // Example static values for each category
 
-const PieGraph = ({taskExpenses}) => {
-  // const mode = useSelector((state) => state.config.mode);
-   // Calculate total expenses for each category
-   const categories = ["Flooring", "Painting", "Plumbing", "Wiring", "Furniture"];
-
-   const categoryExpenses = categories.map(category =>
-    taskExpenses[category.toLowerCase()]
-      .reduce((acc, expense) => acc + parseFloat(expense.amount), 0)
-  );
-
-  const totalExpenses = categoryExpenses.reduce((acc, expense) => acc + expense, 0);
+  // Calculate total expenses
+  const totalExpenses = staticValues.reduce((acc, expense) => acc + expense, 0);
 
   // Calculate percentage of total expenses for each category
-  const series = categoryExpenses.map(expense => (expense / totalExpenses) * 100);
+  const series = staticValues.map(expense => (totalExpenses > 0 ? Math.floor((expense / totalExpenses) * 100) : 0));
 
   const options = {
     chart: {
       type: 'donut',
     },
-    labels: ['Flooring', 'Painting', 'Plumbing','Furniture','Electrical Design'],
+    labels: categories,
     dataLabels: {
       enabled: false,
     },
     legend: {
-      show: false,
+      show: true,
+      position: 'bottom', // Position legends at the bottom
+      horizontalAlign: 'center',
+      floating: false,
     },
     plotOptions: {
       pie: {
-        size: 100,
+        size: '70%', // Adjust size of the pie chart
         donut: {
           size: '80%',
         },
+      },
+    },
+    tooltip: {
+      enabled: true,
+      formatter: (val, { seriesIndex }) => {
+        const percentage = series[seriesIndex];
+        return `${categories[seriesIndex]}: ${percentage}%`; // Show category name and percentage
       },
     },
     annotations: {
       position: 'front',
       points: [
         {
-          x: 50,
-          y: 50,
+          x: '50%',
+          y: '50%',
           marker: {
             size: 0,
           },
           label: {
-            text: 'Center Text',
+            text: 'Total Expenses',
             offsetY: 0,
             style: {
               fontSize: '18px',
@@ -58,18 +63,11 @@ const PieGraph = ({taskExpenses}) => {
     },
   };
 
-  // useEffect(() => {
-  //   if(mode === "dark") {
-  //     setOptions((options) => ({...options, theme: { mode: 'dark' }}))
-  //   } else if(mode === "light") {
-  //     setOptions((options) => ({...options, theme: { mode: 'light' }}))
-  //   }
-  // }, [mode, setOptions]);
   return (
-    <div className='object-contain flex justify-center' id="equity">
-      <Chart options={options} series={series} type="donut" height={278.7} width={279} />
+    <div>
+      <Chart options={options} series={series} type="donut" height={400} /> {/* Increased height */}
     </div>
-  )
+  );
 }
 
 export default PieGraph;
