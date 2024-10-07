@@ -21,7 +21,7 @@ app.use(cors());
 const PORT = 5001 || 9000;
 mongoose
   .connect(
-    "mongodb+srv://Priyanka:srcn1224@cluster0.evn3twy.mongodb.net/?retryWrites=true&w=majority",
+    "mongodb+srv://atharvayadav11:ashokvaishali@cluster0.twnwnbu.mongodb.net/ApnaGharTest?retryWrites=true&w=majority",
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,
