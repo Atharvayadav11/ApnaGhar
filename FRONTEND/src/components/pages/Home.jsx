@@ -5,7 +5,7 @@ import Navbar from '../shared/Navbar';
 
 const Home = () => (
 <>
-    <div className='sticky z-30'>
+    <div className='sticky z-30 top-0'>
     <Navbar/>
     </div>
   <div className="p-8  min-h-screen">
