@@ -28,7 +28,7 @@ const App = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/generate" element={<Generate1 />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/paint" element={<PaintWall />} />
+        <Route path="/tasks" element={<PaintWall />} />
         <Route path="/paint-cost" element={<PaintCost />} />
         <Route path='/compare' element={<Compare />} />
         <Route path='/dallE' element={<DallEPage />} />

@@ -65,6 +65,13 @@ const routes = [
   //   icon: <MdFormatPaint className="h-6 w-6" />,
   //   component: <PaintWall />,
   // },
+  {
+    name: "Tasks",
+    layout: "/admin",
+    path: "tasks",
+    icon: <MdFormatPaint className="h-6 w-6" />,
+    component: <PaintWall />,
+  },
   // {
   //   name: "Data Tables",
   //   layout: "/admin",
