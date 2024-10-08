@@ -58,13 +58,13 @@ const routes = [
   //   component: <NFTMarketplace />,
   //   secondary: true,
   // },
-  {
-    name: "Paint Wall",
-    layout: "/admin",
-    path: "paintwall",
-    icon: <MdFormatPaint className="h-6 w-6" />,
-    component: <PaintWall />,
-  },
+  // {
+  //   name: "Paint Wall",
+  //   layout: "/admin",
+  //   path: "paintwall",
+  //   icon: <MdFormatPaint className="h-6 w-6" />,
+  //   component: <PaintWall />,
+  // },
   // {
   //   name: "Data Tables",
   //   layout: "/admin",
@@ -101,7 +101,7 @@ const routes = [
     component: <Contact />,
   },
   {
-    name: "View Details",
+    name: "Progress",
     layout: "/admin",
     path: "view-details/:id",
     icon: <MdBarChart className="h-6 w-6" />,

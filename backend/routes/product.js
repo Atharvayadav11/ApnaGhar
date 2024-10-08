@@ -1,84 +1,46 @@
+const express = require("express");
+const router = express.Router();
 const Product = require("../models/Product");
-const {
-  verifyToken,
-  verifyTokenAndAuthorization,
-  verifyTokenAndAdmin,
-} = require("./verifytoken");
-const cryptojs = require("crypto-js");
 const twilio = require("twilio");
 
-// Your Twilio account SID and auth token
-const accountSid = "ACba4b713ac18bb26942093f1b5fcb711a";
-const authToken = "fabc66248b40e353ce5ed4a5240764b2";
+// Twilio configuration
+const accountSid = 'ACfec0000147003bd1c3d833be3333254c';
+const authToken = '7f10396dfc57d2bb66b64cd05d2db685';
 const client = new twilio(accountSid, authToken);
-const router = require("express").Router();
 
-//create product
-router.post("/",  async (req, res) => {
-    const newProduct = new Product(req.body);
-    try{
-        const savedProduct = await newProduct.save();
-        res.status(200).json(savedProduct);
-
-    }
-    catch(err){ 
-    console.log(err)
+// Create product
+router.post("/", async (req, res) => {
+  const newProduct = new Product(req.body);
+  try {
+    const savedProduct = await newProduct.save();
+    res.status(200).json(savedProduct);
+  } catch (err) {
+    console.log(err);
     res.status(500).json(err);
-    }
+  }
+});
 
-})
-//update the product
-const nodemailer = require("nodemailer");
-
+// Update product
 router.put("/:id", async (req, res) => {
   try {
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
-      {
-        $set: req.body,
-      },
+      { $set: req.body },
       { new: true }
     );
 
     // Check if the status is set to "completed"
     if (req.body.status === "completed") {
-      // Create a transporter for sending emails
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: "priyankaar25@gmail.com",
-          pass: "xyqj ifjp oqph jemj",
-        },
-      });
-    
-      // Define the email options
-      const mailOptions = {
-        from: "priyankaar25@gmail.com",
-        to: "priyankaa.250303@gmail.com",
-        subject: `${req.body.taskname} Task Completed Successfully`,
-        text: `Your task ${req.body.taskname} dated ${req.body.date} has been completed successfully.`,
-      }
-
-      // Send the email
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.log(error);
-        } else {
-          console.log("Email sent: " + info.response);
-        }
-      });
-    }
-    // Send a WhatsApp message
+      // Send SMS message
       client.messages
         .create({
-          body: `Your task ${req.body.taskname} dated ${req.body.date} has been completed successfully.`,
-          from: "whatsapp:+14155238886", // Your Twilio number
-          to: "whatsapp:+919967331856", // Your phone number
+          body: `Your task ${updatedProduct.taskname} assigned to ${updatedProduct.assignedTo} dated ${updatedProduct.date} has been completed successfully.`,
+          from: '+18433105469',
+          to: '+919321543686'
         })
-        .then((message) => console.log(message.sid, "message sent"))
-        .catch((err) => console.error(err));
-    
-    
+        .then(message => console.log('SMS sent:', message.sid))
+        .catch(err => console.error('Error sending SMS:', err));
+    }
 
     res.status(200).json(updatedProduct);
   } catch (err) {
@@ -87,7 +49,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// delete the product
+// Delete product
 router.delete("/:id", async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
@@ -96,29 +58,25 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json(err);
   }
 });
-module.exports = router;
 
-//get the products
-router.get("/:id",  async (req, res) => {
+// Get products by customer id
+router.get("/:id", async (req, res) => {
   try {
-    const product = await Product.find({id:req.params.id});
-    res.status(200).json(product);
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
-
-//get all products
-router.get("/",  async (req, res) => {
-
-  try {
-    let products;
-   
-        products = await Product.find();
-  
- 
+    const products = await Product.find({ id: req.params.id });
     res.status(200).json(products);
   } catch (err) {
     res.status(500).json(err);
   }
 });
+
+// Get all products
+router.get("/", async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.status(200).json(products);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+module.exports = router;

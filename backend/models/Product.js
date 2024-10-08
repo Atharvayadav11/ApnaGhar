@@ -1,4 +1,5 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+
 const productSchema = new mongoose.Schema(
   {
     id: {
@@ -18,10 +19,18 @@ const productSchema = new mongoose.Schema(
     date: {
       type: Date,
     },
+    endDate: {
+      type: Date,
+    },
+    assignedTo: {
+      type: String,
+    },
+    // Uncomment if you want to track progress
     // progress: {
     //   type: Number,
     // },
   },
   { timestamps: true }
 );
-module.exports = mongoose.model("Product",productSchema)
+
+module.exports = mongoose.model("Product", productSchema);
