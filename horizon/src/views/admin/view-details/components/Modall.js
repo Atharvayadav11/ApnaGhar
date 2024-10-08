@@ -10,21 +10,21 @@ import {
   Button,
   FormControl,
   FormLabel,
-  FormErrorMessage,
-  FormHelperText,
   Input,
   Select,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useState } from "react";
-import { GrAdd, GrEdit } from "react-icons/gr";
-export function Modall({id}) {
+import { GrAdd } from "react-icons/gr";
+
+export function Modall({ id }) {
   const [taskname, setTaskname] = useState("");
   const [status, setStatus] = useState("");
   const [date, setDate] = useState("");
+  const [assignedTo, setAssignedTo] = useState("");
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-   const count = JSON.parse(localStorage.getItem("countData"));
+  const count = JSON.parse(localStorage.getItem("countData"));
 
   const AddCustomer = async (e) => {
     e.preventDefault();
@@ -34,38 +34,33 @@ export function Modall({id}) {
         taskname: taskname,
         status: status,
         date: date,
+        assignedTo: assignedTo,
       });
       window.location.reload();
-      console.log("successs");
+      console.log("success");
       editCust(count.id);
-
     } catch (err) {
       console.log(err);
     }
   };
-      const editCust = async (id) => {
-        try {
-          const res = await axios.put(`http://localhost:5001/customer/${id}`, {
-            progress: (count.count / count.total) * 100,
-          });
-          console.log(res.data);
-          window.location.reload();
-        } catch (err) {
-          console.log(err);
-        }
-      };
 
-  
+  const editCust = async (id) => {
+    try {
+      const res = await axios.put(`http://localhost:5001/customer/${id}`, {
+        progress: (count.count / count.total) * 100,
+      });
+      console.log(res.data);
+      window.location.reload();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <>
       <Button onClick={onOpen}>
-        {" "}
         <GrAdd size={20} color="blue" />
       </Button>
-      {/* <Button onClick={onOpen}>
-        {" "}
-        <GrEdit size={20} color="blue" />
-      </Button> */}
       <Modal
         isCentered
         onClose={onClose}
@@ -80,18 +75,14 @@ export function Modall({id}) {
             <FormControl>
               <FormLabel>Name</FormLabel>
               <Input
-                onChange={(e) => {
-                  setTaskname(e.target.value);
-                }}
-                type="name"
+                onChange={(e) => setTaskname(e.target.value)}
+                type="text"
               />
             </FormControl>
             <FormControl>
               <FormLabel mt={3}>Status</FormLabel>
               <Select
-                onChange={(e) => {
-                  setStatus(e.target.value);
-                }}
+                onChange={(e) => setStatus(e.target.value)}
                 placeholder="Select status"
               >
                 <option value="pending">Pending</option>
@@ -102,10 +93,15 @@ export function Modall({id}) {
             <FormControl mt={3}>
               <FormLabel>Date</FormLabel>
               <Input
-                onChange={(e) => {
-                  setDate(e.target.value);
-                }}
+                onChange={(e) => setDate(e.target.value)}
                 type="date"
+              />
+            </FormControl>
+            <FormControl mt={3}>
+              <FormLabel>Assigned To</FormLabel>
+              <Input
+                onChange={(e) => setAssignedTo(e.target.value)}
+                type="text"
               />
             </FormControl>
           </ModalBody>

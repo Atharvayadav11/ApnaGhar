@@ -59,7 +59,7 @@ const Dashboard = () => {
       </div>
       {/* Complex Table , Task & Calendar */}
 
-      <div className="mt-10 ">
+      <div className="mt-10 bg-white shadow-md px-4 py-2  rounded-md">
         <ComplexTable
           columnsData={columnsDataComplex}
           tableData={tableDataComplex}
@@ -78,19 +78,19 @@ const Dashboard = () => {
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-1">
 
 
-        <div className="grid grid-cols-1 gap-5 rounded-[20px] md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 rounded-[20px] md:grid-cols-2 pt-2">
           <TaskCard />
-          <div className="rounded-[20px] bg-red-200">
-            <div className="flex gap-2 justify-start pb-4 items-center  ml-4 ">
-            <div className="pt-1">
-            <DollarIcon className = "h-7 w-7"/>
+          <div className="rounded-[20px]  bg-white bg-clip-border">
+            <div className="flex gap-2 justify-start pb-4 items-center  ml-4 pt-4">
+              <div className="pt-1">
+                <DollarIcon className="h-7 w-7" />
+              </div>
+              <h1 className="text-start font-semibold font-sans text-xl pt-1 pl-1">Budget Utilization</h1>
             </div>
-            <h1 className="text-start font-bold font-sans text-2xl pt-1 pl-1">Budget Allocation</h1>
-            </div>
-            <div className="flex justify-center items-center ">
-            <CircularProgress value={40} color='green.400'>
-              <CircularProgressLabel>40%</CircularProgressLabel>
-            </CircularProgress>
+            <div className="flex justify-center pt-6 ">
+              <CircularProgress value={40} color='#4318FF' size={60}>
+                <CircularProgressLabel>₹6K of 2L</CircularProgressLabel>
+              </CircularProgress>
             </div>
           </div>
         </div>

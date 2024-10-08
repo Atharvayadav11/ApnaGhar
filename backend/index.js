@@ -13,6 +13,8 @@ const authRoute = require("./routes/auth.js");
 const productRoute = require("./routes/product.js");
 const paintRoutes = require("./routes/paint.js");
 const custRoute = require("./routes/customer.js");
+const projectRoutes = require("./routes/projectRoutes.js");
+const taskRoutes = require("./routes/taskRoutes.js");
 const Paint = require("./models/Paint.js");
 
 dotenv.config();
@@ -39,7 +41,14 @@ app.use("/user", userRoute);
 app.use("/auth", authRoute);
 app.use("/products", productRoute);
 app.use("/customer", custRoute);
+
 app.use("/paint", paintRoutes);
+
+app.use("/projects",projectRoutes)
+app.use("/tasks",taskRoutes)
+// app.use("/api/cart", cartRoute);
+// app.use("/api/order", orderRoute);
+
 
 app.use('/getPaints', async (req, res) => {
   const result = await Paint.find();

@@ -85,15 +85,15 @@ export const columnsDataComplex = [
     accessor: "name",
   },
   {
-    Header: "STATUS",
-    accessor: "status",
+    Header: "Budget",
+    accessor: "budget",
   },
   {
     Header: "START DATE",
     accessor: "start_date",
   },
   {
-    Header: "END DATE",
+    Header: "Deadline",
     accessor: "end_date",
   },
   {
