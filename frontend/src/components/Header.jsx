@@ -13,7 +13,7 @@ export default function Header() {
           width={24}
           height={24}
         />
-        <h1 className="sm:text-3xl text-xl font-light ml-2 tracking-tight ">
+        <h1 className="sm:text-3xl text-xl font-light ml-2 tracking-tight">
           ApnaGhar
         </h1>
       </Link>
@@ -38,12 +38,15 @@ export default function Header() {
           >
             <div>Compare</div>
           </Link>
+
+          {/* Replace Cost Estimation with Chat */}
           <Link
-            to="/paint-cost"
+            to="/chat"
             className="border-gray-300 pr-4 flex space-x-2 hover:text-[#01BD57] transition"
           >
-            <div>Cost Estimation</div>
+            <div>Chat</div>
           </Link>
+
           <Link
             to="https://64323ff406fb264b1328e217--poetic-lokum-8589b1.netlify.app/"
             className="border-gray-300 pr-4 flex space-x-2 hover:text-[#01BD57] transition"
