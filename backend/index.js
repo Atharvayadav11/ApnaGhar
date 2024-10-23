@@ -16,6 +16,7 @@ const custRoute = require("./routes/customer.js");
 const projectRoutes = require("./routes/projectRoutes.js");
 const taskRoutes = require("./routes/taskRoutes.js");
 const Paint = require("./models/Paint.js");
+const scrapeIkeaCategory  = require("./utils/scrapper.js");
 
 dotenv.config();
 app.use(express.json());
@@ -46,6 +47,30 @@ app.use("/paint", paintRoutes);
 
 app.use("/projects",projectRoutes)
 app.use("/tasks",taskRoutes)
+
+app.get('/scrape/:category', async (req, res) => {
+  const { category } = req.params;
+  const chairs = await scrapeIkeaCategory(category);
+
+  if (chairs.length > 0) {
+    console.log(JSON.stringify(chairs, null, 2));
+    return res.status(200).json(chairs); 
+  } else {
+    console.log('No chairs found or an error occurred');
+    return res.status(404).json({ message: 'No chairs found or an error occurred' });
+  }
+});
+
+// (async function() {
+//   console.log("Hello");
+  
+//   const chairs = await scrapeIkeaCategory('chairs');
+//   if (chairs.length > 0) {
+//       console.log(JSON.stringify(chairs, null, 2));
+//   } else {
+//       console.log('No chairs found or an error occurred');
+//     }
+// })();
 // app.use("/api/cart", cartRoute);
 // app.use("/api/order", orderRoute);
 
