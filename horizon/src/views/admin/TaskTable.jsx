@@ -1,3 +1,4 @@
+// TaskTable.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Table,
@@ -12,62 +13,66 @@ import {
   Flex,
   Text,
   Button,
-  useToast
+  useToast,
+  Spinner,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
 } from '@chakra-ui/react';
 import { MdEdit, MdDelete, MdCheckCircle, MdCancel, MdAccessTime } from 'react-icons/md';
 import { FaUser } from 'react-icons/fa';
 import axios from 'axios';
-import { TaskModal } from './TaskModal'; // Assuming TaskModal is in the same directory
+import { TaskModal } from './TaskModal';
 
-const StatusToggle = ({ status, onToggle }) => {
+const API_BASE_URL = 'http://localhost:5001';
+
+const StatusToggle = ({ status, onToggle, isLoading }) => {
   const statusOrder = ['pending', 'completed', 'incomplete'];
   
   const handleToggle = () => {
+    if (isLoading) return;
     const currentIndex = statusOrder.indexOf(status);
     const nextIndex = (currentIndex + 1) % statusOrder.length;
     onToggle(statusOrder[nextIndex]);
   };
 
+  const getStatusConfig = (status) => {
+    switch (status) {
+      case 'completed':
+        return { icon: <MdCheckCircle />, color: 'green' };
+      case 'pending':
+        return { icon: <MdAccessTime />, color: 'orange' };
+      case 'incomplete':
+        return { icon: <MdCancel />, color: 'red' };
+      default:
+        return { icon: null, color: 'gray' };
+    }
+  };
+
+  const config = getStatusConfig(status);
+
   return (
     <Button
       size="sm"
       onClick={handleToggle}
-      leftIcon={getStatusIcon(status)}
-      colorScheme={getStatusColor(status)}
+      leftIcon={isLoading ? <Spinner size="xs" /> : config.icon}
+      colorScheme={config.color}
+      isDisabled={isLoading}
     >
       {status}
     </Button>
   );
 };
 
-const getStatusIcon = (status) => {
-  switch (status) {
-    case 'completed':
-      return <MdCheckCircle />;
-    case 'pending':
-      return <MdAccessTime />;
-    case 'incomplete':
-      return <MdCancel />;
-    default:
-      return null;
-  }
-};
-
-const getStatusColor = (status) => {
-  switch (status) {
-    case 'completed':
-      return 'green';
-    case 'pending':
-      return 'orange';
-    case 'incomplete':
-      return 'red';
-    default:
-      return 'gray';
-  }
-};
-
 const TaskTable = () => {
   const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [updateLoading, setUpdateLoading] = useState(null);
+  const [deleteDialogState, setDeleteDialogState] = useState({ isOpen: false, taskId: null });
+  const cancelRef = React.useRef();
   const toast = useToast();
 
   useEffect(() => {
@@ -76,63 +81,92 @@ const TaskTable = () => {
 
   const fetchTasks = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/tasks');
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/tasks`);
       setTasks(response.data);
     } catch (error) {
-      console.error('Error fetching tasks:', error);
       toast({
         title: 'Error fetching tasks',
-        description: error.message,
+        description: error.response?.data?.error || error.message,
         status: 'error',
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleStatusToggle = async (taskId, newStatus) => {
     try {
-      await axios.put(`http://localhost:5001/tasks/${taskId}`, { status: newStatus });
+      setUpdateLoading(taskId);
+      const response = await axios.put(`${API_BASE_URL}/tasks/${taskId}`, { status: newStatus });
       setTasks(tasks.map(task => 
-        task._id === taskId ? { ...task, status: newStatus } : task
+        task._id === taskId ? response.data : task
       ));
-    } catch (error) {
-      console.error('Error updating task status:', error);
       toast({
-        title: 'Error updating task status',
-        description: error.message,
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
-  const handleDelete = async (taskId) => {
-    try {
-      await axios.delete(`http://localhost:5001/tasks/${taskId}`);
-      setTasks(tasks.filter(task => task._id !== taskId));
-      toast({
-        title: 'Task deleted successfully',
+        title: 'Status updated',
+        description: `Task status changed to ${newStatus}`,
         status: 'success',
         duration: 3000,
         isClosable: true,
       });
     } catch (error) {
-      console.error('Error deleting task:', error);
       toast({
-        title: 'Error deleting task',
-        description: error.message,
+        title: 'Error updating task status',
+        description: error.response?.data?.error || error.message,
         status: 'error',
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setUpdateLoading(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    const { taskId } = deleteDialogState;
+    try {
+      await axios.delete(`${API_BASE_URL}/tasks/${taskId}`);
+      setTasks(tasks.filter(task => task._id !== taskId));
+      toast({
+        title: 'Task deleted',
+        description: 'Task has been successfully removed',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error deleting task',
+        description: error.response?.data?.error || error.message,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setDeleteDialogState({ isOpen: false, taskId: null });
     }
   };
 
   const handleTaskAdded = (newTask) => {
     setTasks([...tasks, newTask]);
+    toast({
+      title: 'Task added',
+      description: 'New task has been successfully created',
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    });
   };
+
+  if (loading) {
+    return (
+      <Flex justify="center" align="center" h="200px">
+        <Spinner size="xl" />
+      </Flex>
+    );
+  }
 
   return (
     <Box boxShadow="md" borderRadius="lg" overflow="hidden" bg="white" p={4}>
@@ -140,6 +174,7 @@ const TaskTable = () => {
         <Text fontSize="2xl" fontWeight="bold">Tasks</Text>
         <TaskModal onTaskAdded={handleTaskAdded} />
       </Flex>
+      
       <TableContainer>
         <Table variant="simple">
           <Thead bg="gray.50">
@@ -161,6 +196,7 @@ const TaskTable = () => {
                   <StatusToggle
                     status={task.status}
                     onToggle={(newStatus) => handleStatusToggle(task._id, newStatus)}
+                    isLoading={updateLoading === task._id}
                   />
                 </Td>
                 <Td>{new Date(task.deadline).toLocaleDateString()}</Td>
@@ -186,7 +222,7 @@ const TaskTable = () => {
                     icon={<MdDelete />}
                     colorScheme="red"
                     size="sm"
-                    onClick={() => handleDelete(task._id)}
+                    onClick={() => setDeleteDialogState({ isOpen: true, taskId: task._id })}
                   />
                 </Td>
               </Tr>
@@ -194,8 +230,36 @@ const TaskTable = () => {
           </Tbody>
         </Table>
       </TableContainer>
+
+      <AlertDialog
+        isOpen={deleteDialogState.isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={() => setDeleteDialogState({ isOpen: false, taskId: null })}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Task
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure? This action cannot be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={() => setDeleteDialogState({ isOpen: false, taskId: null })}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleDelete} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 };
 
+// Add default export
 export default TaskTable;
