@@ -11,6 +11,8 @@ import {
   Flex,
   Text,
   Button,
+  Spinner,
+  Center,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { MdDelete, MdEdit } from "react-icons/md";
@@ -18,44 +20,62 @@ import { Modall } from "./Modal";
 
 const CustomTable = () => {
   const [projects, setProjects] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchProjects = async () => {
+    setIsLoading(true);
     try {
       const res = await axios.get("http://localhost:5001/projects/");
       setProjects(res.data);
-      console.log(res);
-      
       localStorage.setItem("projects", JSON.stringify(res.data));
     } catch (err) {
       console.error("Error fetching projects:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    console.log("Use effect triggered");
-    
     fetchProjects();
   }, []);
 
   const handleProjectAdded = (newProject) => {
-    setProjects(prevProjects => [...prevProjects, newProject]);
-    localStorage.setItem("projects", JSON.stringify([...projects, newProject]));
+    setProjects((prevProjects) => {
+      const updatedProjects = [...prevProjects, newProject];
+      localStorage.setItem("projects", JSON.stringify(updatedProjects));
+      return updatedProjects;
+    });
   };
 
   const deleteProject = async (id) => {
     try {
       await axios.delete(`http://localhost:5001/projects/${id}`);
-      const updatedProjects = projects.filter(project => project._id !== id);
-      setProjects(updatedProjects);
-      localStorage.setItem("projects", JSON.stringify(updatedProjects));
+      setProjects((prevProjects) => {
+        const updatedProjects = prevProjects.filter(
+          (project) => project._id !== id
+        );
+        localStorage.setItem("projects", JSON.stringify(updatedProjects));
+        return updatedProjects;
+      });
     } catch (err) {
       console.error("Error deleting project:", err);
     }
   };
+
+  if (isLoading) {
+    return (
+      <Center h="100vh">
+        <Spinner size="xl" />
+      </Center>
+    );
+  }
+
   return (
     <Box>
       <Flex justify="space-between" align="center" mb={4}>
-        <Text fontSize="2xl" fontWeight="bold">Project List</Text>
+        <Text fontSize="2xl" fontWeight="bold">
+          Project List
+        </Text>
         <Modall onProjectAdded={handleProjectAdded} />
       </Flex>
       <TableContainer>
@@ -72,10 +92,18 @@ const CustomTable = () => {
           <Tbody>
             {projects.map((project) => (
               <Tr key={project._id}>
-                <Td>{project.project_name}</Td>
-                <Td>{project.customer_name}</Td>
-                <Td>{project.budget}</Td>
-                <Td>{new Date(project.deadline).toLocaleDateString()}</Td>
+                <Td>{project.project_name || "N/A"}</Td>
+                <Td>{project.customer_name || "N/A"}</Td>
+                <Td>
+                  {project.budget?.total !== undefined
+                    ? project.budget.total
+                    : "Not specified"}
+                </Td>
+                <Td>
+                  {project.deadline
+                    ? new Date(project.deadline).toLocaleDateString()
+                    : "No deadline"}
+                </Td>
                 <Td>
                   <Button
                     leftIcon={<MdEdit />}

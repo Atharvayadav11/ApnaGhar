@@ -9,6 +9,8 @@ router.post("/", projectController.addProject);
 // Get all projects
 router.get("/", projectController.getProjects);
 
+router.get("/:id", projectController.getProject);
+
 // Delete a project by id
 router.delete("/:id", projectController.deleteProject);
 

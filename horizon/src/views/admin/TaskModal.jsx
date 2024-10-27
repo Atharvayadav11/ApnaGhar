@@ -17,6 +17,7 @@ import {
 } from "@chakra-ui/react";
 import axios from "axios";
 import { GrAdd } from "react-icons/gr";
+import { useProjectContext } from 'context/ProjectContext';
 
 export function TaskModal({ onTaskAdded }) {
   const [title, setTitle] = useState("");
@@ -24,7 +25,7 @@ export function TaskModal({ onTaskAdded }) {
   const [deadline, setDeadline] = useState("");
   const [status, setStatus] = useState("pending");
   const [workerName, setWorkerName] = useState("");
-  const projectId = "67045697a8577f840c0e4e96"; // Hardcoded project ID
+  const {projectId} = useProjectContext()
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();

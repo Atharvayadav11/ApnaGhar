@@ -12,12 +12,17 @@ import {
   Flex,
   Text,
   Button,
-  useToast
+  useToast,
+  Spinner,
+  Center,
+  Alert,
+  AlertIcon,
 } from '@chakra-ui/react';
 import { MdEdit, MdDelete, MdCheckCircle, MdCancel, MdAccessTime } from 'react-icons/md';
 import { FaUser } from 'react-icons/fa';
 import axios from 'axios';
-import { TaskModal } from './TaskModal'; // Assuming TaskModal is in the same directory
+import { TaskModal } from './TaskModal';
+import { useProjectContext } from 'context/ProjectContext';
 
 const StatusToggle = ({ status, onToggle }) => {
   const statusOrder = ['pending', 'completed', 'incomplete'];
@@ -68,18 +73,24 @@ const getStatusColor = (status) => {
 
 const TaskTable = () => {
   const [tasks, setTasks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const toast = useToast();
-
+  const {projectId} = useProjectContext()
   useEffect(() => {
     fetchTasks();
   }, []);
 
   const fetchTasks = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const response = await axios.get('http://localhost:5001/tasks');
+      console.log(projectId);
+      const response = await axios.get(`http://localhost:5001/tasks/${projectId}`);
       setTasks(response.data);
     } catch (error) {
       console.error('Error fetching tasks:', error);
+      setError(error.message);
       toast({
         title: 'Error fetching tasks',
         description: error.message,
@@ -87,6 +98,8 @@ const TaskTable = () => {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -96,6 +109,12 @@ const TaskTable = () => {
       setTasks(tasks.map(task => 
         task._id === taskId ? { ...task, status: newStatus } : task
       ));
+      toast({
+        title: 'Status updated successfully',
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
     } catch (error) {
       console.error('Error updating task status:', error);
       toast({
@@ -132,7 +151,36 @@ const TaskTable = () => {
 
   const handleTaskAdded = (newTask) => {
     setTasks([...tasks, newTask]);
+    toast({
+      title: 'Task added successfully',
+      status: 'success',
+      duration: 2000,
+      isClosable: true,
+    });
   };
+
+  if (isLoading) {
+    return (
+      <Center h="400px">
+        <Spinner
+          thickness="4px"
+          speed="0.65s"
+          emptyColor="gray.200"
+          color="blue.500"
+          size="xl"
+        />
+      </Center>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert status="error">
+        <AlertIcon />
+        Error loading tasks: {error}
+      </Alert>
+    );
+  }
 
   return (
     <Box boxShadow="md" borderRadius="lg" overflow="hidden" bg="white" p={4}>
@@ -140,60 +188,67 @@ const TaskTable = () => {
         <Text fontSize="2xl" fontWeight="bold">Tasks</Text>
         <TaskModal onTaskAdded={handleTaskAdded} />
       </Flex>
-      <TableContainer>
-        <Table variant="simple">
-          <Thead bg="gray.50">
-            <Tr>
-              <Th>Title</Th>
-              <Th>Status</Th>
-              <Th>Deadline</Th>
-              <Th>Worker Name</Th>
-              <Th>Actions</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {tasks.map((task) => (
-              <Tr key={task._id}>
-                <Td>
-                  <Text fontWeight="medium">{task.title}</Text>
-                </Td>
-                <Td>
-                  <StatusToggle
-                    status={task.status}
-                    onToggle={(newStatus) => handleStatusToggle(task._id, newStatus)}
-                  />
-                </Td>
-                <Td>{new Date(task.deadline).toLocaleDateString()}</Td>
-                <Td>
-                  <Flex align="center">
-                    <Box mr={2}>
-                      <FaUser />
-                    </Box>
-                    {task.worker_name}
-                  </Flex>
-                </Td>
-                <Td>
-                  <IconButton
-                    aria-label="Edit"
-                    icon={<MdEdit />}
-                    mr={2}
-                    colorScheme="blue"
-                    size="sm"
-                    onClick={() => console.log('Edit', task)}
-                  />
-                  <IconButton
-                    aria-label="Delete"
-                    icon={<MdDelete />}
-                    colorScheme="red"
-                    size="sm"
-                    onClick={() => handleDelete(task._id)}
-                  />
-                </Td>
+      {tasks.length === 0 ? (
+        <Alert status="info">
+          <AlertIcon />
+          No tasks found. Create a new task to get started.
+        </Alert>
+      ) : (
+        <TableContainer>
+          <Table variant="simple">
+            <Thead bg="gray.50">
+              <Tr>
+                <Th>Title</Th>
+                <Th>Status</Th>
+                <Th>Deadline</Th>
+                <Th>Worker Name</Th>
+                <Th>Actions</Th>
               </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      </TableContainer>
+            </Thead>
+            <Tbody>
+              {tasks.map((task) => (
+                <Tr key={task._id}>
+                  <Td>
+                    <Text fontWeight="medium">{task.title}</Text>
+                  </Td>
+                  <Td>
+                    <StatusToggle
+                      status={task.status}
+                      onToggle={(newStatus) => handleStatusToggle(task._id, newStatus)}
+                    />
+                  </Td>
+                  <Td>{new Date(task.deadline).toLocaleDateString()}</Td>
+                  <Td>
+                    <Flex align="center">
+                      <Box mr={2}>
+                        <FaUser />
+                      </Box>
+                      {task.worker_name}
+                    </Flex>
+                  </Td>
+                  <Td>
+                    <IconButton
+                      aria-label="Edit"
+                      icon={<MdEdit />}
+                      mr={2}
+                      colorScheme="blue"
+                      size="sm"
+                      onClick={() => console.log('Edit', task)}
+                    />
+                    <IconButton
+                      aria-label="Delete"
+                      icon={<MdDelete />}
+                      colorScheme="red"
+                      size="sm"
+                      onClick={() => handleDelete(task._id)}
+                    />
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      )}
     </Box>
   );
 };

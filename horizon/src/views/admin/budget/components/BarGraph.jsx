@@ -1,12 +1,16 @@
 import React from "react";
 import Chart from "react-apexcharts";
 
-const BarGraph = ({taskExpenses}) => {
+const BarGraph = ({taskExpenses,project}) => {
   //   const mode = useSelector((state) => state.config.mode);
-  const categories = ["Flooring", "Painting", "Plumbing", "Wiring", "Furniture"];
-
+  const categories = ["Flooring", "Plumbing", "Wiring","Painting", "Furniture"];
+  console.log(project);
+  
   // Fixed values for Expected Investment
-  const expectedInvestment = [660, 440, 550 , 570, 560];
+  const budget = project.budget;
+  const expectedInvestment = Object.keys(budget)
+    .filter(key => key !== 'total')
+    .map(key => budget[key]);
 
   const series = [
     {
@@ -51,7 +55,7 @@ const BarGraph = ({taskExpenses}) => {
     },
     xaxis: {
       
-      categories: ["Flooring", "Painting", "Plumbing", "Wiring", "Furniture"],
+      categories: ["Flooring", "Plumbing", "Wiring","Painting", "Furniture"],
     },
     yaxis: {
       title: {
