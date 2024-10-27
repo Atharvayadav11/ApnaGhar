@@ -1,95 +1,124 @@
-import MiniCalendar from "components/calendar/MiniCalendar";
-import WeeklyRevenue from "views/admin/default/components/WeeklyRevenue";
-import TotalSpent from "views/admin/default/components/TotalSpent";
+import React, { useEffect, useState } from "react";
 import { MdBarChart, MdDashboard } from "react-icons/md";
-import { columnsDataCheck, columnsDataComplex } from "./variables/columnsData";
-import Widget from "components/widget/Widget";
-import CheckTable from "views/admin/default/components/CheckTable";
-import ComplexTable from "views/admin/default/components/ComplexTable";
-import DailyTraffic from "views/admin/default/components/DailyTraffic";
-import TaskCard from "views/admin/default/components/TaskCard";
-import tableDataCheck from "./variables/tableDataCheck.json";
-import tableDataComplex from "./variables/tableDataComplex.json";
+import { CircularProgress, CircularProgressLabel, Spinner, Center } from "@chakra-ui/react";
+import { useProjectContext } from "context/ProjectContext";
+import axios from "axios";
 import ClockIcon from "components/icons/ClockIcon";
-import { Progress } from '@chakra-ui/react'
-import PieChart from "components/charts/PieChart";
-import { CircularProgress, CircularProgressLabel } from '@chakra-ui/react'
 import DollarIcon from "components/icons/WidgetIcon/DollarIcon";
+import Widget from "components/widget/Widget";
+import ComplexTable from "views/admin/default/components/ComplexTable";
+import TaskCard from "views/admin/default/components/TaskCard";
+import { columnsDataComplex } from "./variables/columnsData";
+import tableDataComplex from "./variables/tableDataComplex.json";
 
 const Dashboard = () => {
+  const [project, setProject] = useState(null);
+  const [taskCount, setTaskCount] = useState({ pending: 0 });
+  const [isLoading, setIsLoading] = useState(true);
+  const { projectId } = useProjectContext();
 
-  const count = JSON.parse(localStorage.getItem("countData"));
-  console.log(count);
-
-  const series = [44, 55, 41, 17, 15]; // Example data
-  const options = {
-    labels: ['Apples', 'Bananas', 'Oranges', 'Pears', 'Grapes'], // Labels for each section of the pie
-    legend: {
-      position: 'bottom'
-    },
-    colors: ['#1E90FF', '#00C49F', '#FFBB28', '#FF8042', '#FF4560'],
-    chart: {
-      background: 'white'
+  const fetchProject = async () => {
+    try {
+      const response = await axios.get(`http://localhost:5001/projects/${projectId}`);
+      setProject(response.data);
+    } catch (error) {
+      console.error("Error fetching project data:", error);
     }
   };
 
+  const fetchCount = async () => {
+    try {
+      const response = await axios.get(`http://localhost:5001/tasks/count/${projectId}`);
+      setTaskCount(response.data);
+    } catch (error) {
+      console.error("Error fetching task counts:", error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      await fetchProject();
+      await fetchCount();
+      setIsLoading(false);
+    };
+    fetchData();
+  }, [projectId]);
+
+  if (isLoading) {
+    return (
+      <Center h="100vh">
+        <Spinner size="xl" />
+      </Center>
+    );
+  }
+
+  const calculateDaysLeft = (deadline) => {
+    const deadlineDate = new Date(deadline);
+    const today = new Date();
+    const timeDiff = deadlineDate - today;
+    return Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+  };
+
+  const calculateBudgetUtilization = () => {
+    if (project?.budget?.total && project.budget_spent >= 0) {
+      const totalBudget = project.budget.total;
+      const spent = project.budget_spent;
+      return Math.min((spent / totalBudget) * 100, 100); 
+    }
+    return 0;
+  };
+
+  const daysLeft = calculateDaysLeft(project.deadline);
+  const budgetUtilization = calculateBudgetUtilization();
+
   return (
     <div>
-      {/* Card widget */}
-
+      {/* Widgets */}
       <div className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3 3xl:grid-cols-6">
         <Widget
           icon={<MdBarChart className="h-7 w-7" />}
           title={"Progress"}
-          subtitle={"50%"}
-          progress={50}
+          subtitle={`${budgetUtilization.toFixed(2)}%`}
+          progress={budgetUtilization}
         />
         <Widget
           icon={<ClockIcon className="h-7 w-7" />}
           title={"Time Left"}
-          subtitle={"30 Days"}
-          progress={30} // Example progress bar
+          subtitle={`${daysLeft} Days`}
+          progress={(daysLeft / 30) * 100} 
         />
         <Widget
           icon={<MdDashboard className="h-6 w-6" />}
           title={"Tasks Pending"}
-          subtitle={"9"}
-          progress={80}
+          subtitle={taskCount.pending || "N/A"}
+          progress={80} 
         />
       </div>
-      {/* Complex Table , Task & Calendar */}
 
-      <div className="mt-10 bg-white shadow-md px-4 py-2  rounded-md">
+      {/* Project Table */}
+      <div className="mt-10 bg-white shadow-md px-4 py-2 rounded-md">
         <ComplexTable
           columnsData={columnsDataComplex}
           tableData={tableDataComplex}
-          count={count}
           title="Project List"
         />
-
       </div>
 
-      {/* Charts */}
-
-
-
-      {/* Tables & Charts */}
-
+      {/* Budget Utilization & TaskCard */}
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-1">
-
-
         <div className="grid grid-cols-1 gap-5 rounded-[20px] md:grid-cols-2 pt-2">
           <TaskCard />
-          <div className="rounded-[20px]  bg-white bg-clip-border">
-            <div className="flex gap-2 justify-start pb-4 items-center  ml-4 pt-4">
+          <div className="rounded-[20px] bg-white bg-clip-border">
+            <div className="flex gap-2 justify-start pb-4 items-center ml-4 pt-4">
               <div className="pt-1">
                 <DollarIcon className="h-7 w-7" />
               </div>
               <h1 className="text-start font-semibold font-sans text-xl pt-1 pl-1">Budget Utilization</h1>
             </div>
-            <div className="flex justify-center pt-6 ">
-              <CircularProgress value={40} color='#4318FF' size={60}>
-                <CircularProgressLabel>₹6K of 2L</CircularProgressLabel>
+            <div className="flex justify-center pt-6">
+              <CircularProgress value={budgetUtilization} color="#4318FF" size="120px">
+                <CircularProgressLabel>{`${project.budget_spent} of ${project.budget.total}`}</CircularProgressLabel>
               </CircularProgress>
             </div>
           </div>

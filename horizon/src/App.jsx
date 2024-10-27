@@ -9,6 +9,7 @@ import RtlLayout from "layouts/rtl";
 import AdminLayout from "layouts/admin";
 import AuthLayout from "layouts/auth";
 import SignupPage from "views/auth/SIgnup";
+import { ProjectProvider } from "context/ProjectContext";
 const App = () => {
   const [user, setUser] = useState(undefined);
 
@@ -17,7 +18,7 @@ const App = () => {
     <Routes>
       <Route path="auth/*" element={<AuthLayout />} />
       <Route path="auth/sign-up" element={<SignupPage />} />
-      <Route path="admin/*" element={<AdminLayout />} />
+      <Route path="admin/*" element={<ProjectProvider><AdminLayout /></ProjectProvider>} />
       <Route path="rtl/*" element={<RtlLayout />} />
       <Route path="/" element={<Navigate to="/admin" replace />} />
 

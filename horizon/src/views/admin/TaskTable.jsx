@@ -1,4 +1,3 @@
-// TaskTable.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Table,
@@ -15,156 +14,171 @@ import {
   Button,
   useToast,
   Spinner,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
+  Center,
+  Alert,
+  AlertIcon,
 } from '@chakra-ui/react';
 import { MdEdit, MdDelete, MdCheckCircle, MdCancel, MdAccessTime } from 'react-icons/md';
 import { FaUser } from 'react-icons/fa';
 import axios from 'axios';
 import { TaskModal } from './TaskModal';
+import { useProjectContext } from 'context/ProjectContext';
 
-const API_BASE_URL = 'http://localhost:5001';
-
-const StatusToggle = ({ status, onToggle, isLoading }) => {
+const StatusToggle = ({ status, onToggle }) => {
   const statusOrder = ['pending', 'completed', 'incomplete'];
   
   const handleToggle = () => {
-    if (isLoading) return;
     const currentIndex = statusOrder.indexOf(status);
     const nextIndex = (currentIndex + 1) % statusOrder.length;
     onToggle(statusOrder[nextIndex]);
   };
 
-  const getStatusConfig = (status) => {
-    switch (status) {
-      case 'completed':
-        return { icon: <MdCheckCircle />, color: 'green' };
-      case 'pending':
-        return { icon: <MdAccessTime />, color: 'orange' };
-      case 'incomplete':
-        return { icon: <MdCancel />, color: 'red' };
-      default:
-        return { icon: null, color: 'gray' };
-    }
-  };
-
-  const config = getStatusConfig(status);
-
   return (
     <Button
       size="sm"
       onClick={handleToggle}
-      leftIcon={isLoading ? <Spinner size="xs" /> : config.icon}
-      colorScheme={config.color}
-      isDisabled={isLoading}
+      leftIcon={getStatusIcon(status)}
+      colorScheme={getStatusColor(status)}
     >
       {status}
     </Button>
   );
 };
 
+const getStatusIcon = (status) => {
+  switch (status) {
+    case 'completed':
+      return <MdCheckCircle />;
+    case 'pending':
+      return <MdAccessTime />;
+    case 'incomplete':
+      return <MdCancel />;
+    default:
+      return null;
+  }
+};
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'completed':
+      return 'green';
+    case 'pending':
+      return 'orange';
+    case 'incomplete':
+      return 'red';
+    default:
+      return 'gray';
+  }
+};
+
 const TaskTable = () => {
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [updateLoading, setUpdateLoading] = useState(null);
-  const [deleteDialogState, setDeleteDialogState] = useState({ isOpen: false, taskId: null });
-  const cancelRef = React.useRef();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const toast = useToast();
-
+  const {projectId} = useProjectContext()
   useEffect(() => {
     fetchTasks();
   }, []);
 
   const fetchTasks = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/tasks`);
+      console.log(projectId);
+      const response = await axios.get(`http://localhost:5001/tasks/${projectId}`);
       setTasks(response.data);
     } catch (error) {
+      console.error('Error fetching tasks:', error);
+      setError(error.message);
       toast({
         title: 'Error fetching tasks',
-        description: error.response?.data?.error || error.message,
+        description: error.message,
         status: 'error',
         duration: 3000,
         isClosable: true,
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleStatusToggle = async (taskId, newStatus) => {
     try {
-      setUpdateLoading(taskId);
-      const response = await axios.put(`${API_BASE_URL}/tasks/${taskId}`, { status: newStatus });
+      await axios.put(`http://localhost:5001/tasks/${taskId}`, { status: newStatus });
       setTasks(tasks.map(task => 
-        task._id === taskId ? response.data : task
+        task._id === taskId ? { ...task, status: newStatus } : task
       ));
       toast({
-        title: 'Status updated',
-        description: `Task status changed to ${newStatus}`,
+        title: 'Status updated successfully',
         status: 'success',
-        duration: 3000,
+        duration: 2000,
         isClosable: true,
       });
     } catch (error) {
+      console.error('Error updating task status:', error);
       toast({
         title: 'Error updating task status',
-        description: error.response?.data?.error || error.message,
+        description: error.message,
         status: 'error',
         duration: 3000,
         isClosable: true,
       });
-    } finally {
-      setUpdateLoading(null);
     }
   };
 
-  const handleDelete = async () => {
-    const { taskId } = deleteDialogState;
+  const handleDelete = async (taskId) => {
     try {
-      await axios.delete(`${API_BASE_URL}/tasks/${taskId}`);
+      await axios.delete(`http://localhost:5001/tasks/${taskId}`);
       setTasks(tasks.filter(task => task._id !== taskId));
       toast({
-        title: 'Task deleted',
-        description: 'Task has been successfully removed',
+        title: 'Task deleted successfully',
         status: 'success',
         duration: 3000,
         isClosable: true,
       });
     } catch (error) {
+      console.error('Error deleting task:', error);
       toast({
         title: 'Error deleting task',
-        description: error.response?.data?.error || error.message,
+        description: error.message,
         status: 'error',
         duration: 3000,
         isClosable: true,
       });
-    } finally {
-      setDeleteDialogState({ isOpen: false, taskId: null });
     }
   };
 
   const handleTaskAdded = (newTask) => {
     setTasks([...tasks, newTask]);
     toast({
-      title: 'Task added',
-      description: 'New task has been successfully created',
+      title: 'Task added successfully',
       status: 'success',
-      duration: 3000,
+      duration: 2000,
       isClosable: true,
     });
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <Flex justify="center" align="center" h="200px">
-        <Spinner size="xl" />
-      </Flex>
+      <Center h="400px">
+        <Spinner
+          thickness="4px"
+          speed="0.65s"
+          emptyColor="gray.200"
+          color="blue.500"
+          size="xl"
+        />
+      </Center>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert status="error">
+        <AlertIcon />
+        Error loading tasks: {error}
+      </Alert>
     );
   }
 
@@ -174,92 +188,69 @@ const TaskTable = () => {
         <Text fontSize="2xl" fontWeight="bold">Tasks</Text>
         <TaskModal onTaskAdded={handleTaskAdded} />
       </Flex>
-      
-      <TableContainer>
-        <Table variant="simple">
-          <Thead bg="gray.50">
-            <Tr>
-              <Th>Title</Th>
-              <Th>Status</Th>
-              <Th>Deadline</Th>
-              <Th>Worker Name</Th>
-              <Th>Actions</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {tasks.map((task) => (
-              <Tr key={task._id}>
-                <Td>
-                  <Text fontWeight="medium">{task.title}</Text>
-                </Td>
-                <Td>
-                  <StatusToggle
-                    status={task.status}
-                    onToggle={(newStatus) => handleStatusToggle(task._id, newStatus)}
-                    isLoading={updateLoading === task._id}
-                  />
-                </Td>
-                <Td>{new Date(task.deadline).toLocaleDateString()}</Td>
-                <Td>
-                  <Flex align="center">
-                    <Box mr={2}>
-                      <FaUser />
-                    </Box>
-                    {task.worker_name}
-                  </Flex>
-                </Td>
-                <Td>
-                  <IconButton
-                    aria-label="Edit"
-                    icon={<MdEdit />}
-                    mr={2}
-                    colorScheme="blue"
-                    size="sm"
-                    onClick={() => console.log('Edit', task)}
-                  />
-                  <IconButton
-                    aria-label="Delete"
-                    icon={<MdDelete />}
-                    colorScheme="red"
-                    size="sm"
-                    onClick={() => setDeleteDialogState({ isOpen: true, taskId: task._id })}
-                  />
-                </Td>
+      {tasks.length === 0 ? (
+        <Alert status="info">
+          <AlertIcon />
+          No tasks found. Create a new task to get started.
+        </Alert>
+      ) : (
+        <TableContainer>
+          <Table variant="simple">
+            <Thead bg="gray.50">
+              <Tr>
+                <Th>Title</Th>
+                <Th>Status</Th>
+                <Th>Deadline</Th>
+                <Th>Worker Name</Th>
+                <Th>Actions</Th>
               </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      </TableContainer>
-
-      <AlertDialog
-        isOpen={deleteDialogState.isOpen}
-        leastDestructiveRef={cancelRef}
-        onClose={() => setDeleteDialogState({ isOpen: false, taskId: null })}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Task
-            </AlertDialogHeader>
-
-            <AlertDialogBody>
-              Are you sure? This action cannot be undone.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={() => setDeleteDialogState({ isOpen: false, taskId: null })}>
-                Cancel
-              </Button>
-              <Button colorScheme="red" onClick={handleDelete} ml={3}>
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
+            </Thead>
+            <Tbody>
+              {tasks.map((task) => (
+                <Tr key={task._id}>
+                  <Td>
+                    <Text fontWeight="medium">{task.title}</Text>
+                  </Td>
+                  <Td>
+                    <StatusToggle
+                      status={task.status}
+                      onToggle={(newStatus) => handleStatusToggle(task._id, newStatus)}
+                    />
+                  </Td>
+                  <Td>{new Date(task.deadline).toLocaleDateString()}</Td>
+                  <Td>
+                    <Flex align="center">
+                      <Box mr={2}>
+                        <FaUser />
+                      </Box>
+                      {task.worker_name}
+                    </Flex>
+                  </Td>
+                  <Td>
+                    <IconButton
+                      aria-label="Edit"
+                      icon={<MdEdit />}
+                      mr={2}
+                      colorScheme="blue"
+                      size="sm"
+                      onClick={() => console.log('Edit', task)}
+                    />
+                    <IconButton
+                      aria-label="Delete"
+                      icon={<MdDelete />}
+                      colorScheme="red"
+                      size="sm"
+                      onClick={() => handleDelete(task._id)}
+                    />
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      )}
     </Box>
   );
 };
 
-// Add default export
 export default TaskTable;
