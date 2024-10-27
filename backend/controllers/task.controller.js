@@ -52,9 +52,7 @@ exports.createTasks = async function (req, res) {
         
         return res.status(200).json(newTask);
     } catch (error) {
-        console.log(error);
-        
-        return res.status(500).json({ error: error });
+        return res.status(500).json({ error: error.message });
     }
 };
 
@@ -73,15 +71,15 @@ exports.updateTask = async function (req, res) {
         // Update the task with the provided fields
         const updatedTask = await TaskModel.findByIdAndUpdate(
             taskId,
-            { title, description, deadline, status, worker_id: worker._id },
-            { new: true } // Option to return the updated document
+            updateData,
+            { new: true }
         );
 
         if (!updatedTask) {
             return res.status(404).json({ error: "Task not found" });
         }
 
-        return res.status(200).json(updatedTask); // Return the updated task
+        return res.status(200).json(updatedTask);
     } catch (error) {
         console.log(error);
         

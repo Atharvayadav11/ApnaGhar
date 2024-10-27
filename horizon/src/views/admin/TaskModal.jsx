@@ -33,7 +33,7 @@ export function TaskModal({ onTaskAdded }) {
     try {
         console.log("Hello");
         
-      const response = await axios.post("http://localhost:5001/tasks/create", {
+      const response = await axios.post("http://localhost:5001/tasks", {
         title,
         description,
         deadline,
