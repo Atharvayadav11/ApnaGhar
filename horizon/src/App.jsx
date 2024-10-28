@@ -9,7 +9,12 @@ import RtlLayout from "layouts/rtl";
 import AdminLayout from "layouts/admin";
 import AuthLayout from "layouts/auth";
 import SignupPage from "views/auth/SIgnup";
+
+import DesignPage from "views/design";
+import RoomMap from "views/rtl/default/components/Roommap";
+import RumbleTalkChat from "views/rtl/default/components/Chatapp";
 import { ProjectProvider } from "context/ProjectContext";
+
 const App = () => {
   const [user, setUser] = useState(undefined);
 
@@ -20,6 +25,9 @@ const App = () => {
       <Route path="auth/sign-up" element={<SignupPage />} />
       <Route path="admin/*" element={<ProjectProvider><AdminLayout /></ProjectProvider>} />
       <Route path="rtl/*" element={<RtlLayout />} />
+      <Route path="design" element={<DesignPage />} />
+      <Route path="design" element={<RoomMap />} />
+      <Route path="chat" element={<RumbleTalkChat />} />
       <Route path="/" element={<Navigate to="/admin" replace />} />
 
       {/* Chat Route */}

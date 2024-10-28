@@ -31,13 +31,13 @@ export default function Header() {
           >
             <div>Progress</div>
           </Link>
-
+{/* 
           <Link
             to="/compare"
             className="border-gray-300 pr-4 flex space-x-2 hover:text-[#01BD57] transition"
           >
             <div>Compare</div>
-          </Link>
+          </Link> */}
 
           {/* Replace Cost Estimation with Chat */}
           <Link
@@ -48,18 +48,18 @@ export default function Header() {
           </Link>
 
           <Link
-            to="https://64323ff406fb264b1328e217--poetic-lokum-8589b1.netlify.app/"
+            to="room-map"
             className="border-gray-300 pr-4 flex space-x-2 hover:text-[#01BD57] transition"
           >
-            <div>Playground</div>
+            <div>Room-Map</div>
           </Link>
           <Link
             to="/explore"
             className="border-gray-300 pr-4 flex space-x-2 hover:text-[#01BD57] transition"
           >
-            <div>Explore</div>
+            <div>Marketplace</div>
           </Link>
-          <Link
+          {/* <Link
             className="flex items-center gap-2 hover:text-green-400 transition"
             to="/profile"
           >
@@ -71,7 +71,7 @@ export default function Header() {
               width={32}
               height={28}
             />
-          </Link>
+          </Link> */}
         </div>
       ) : (
         <div className="flex gap-4">
