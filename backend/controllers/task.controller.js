@@ -59,14 +59,17 @@ exports.createTasks = async function (req, res) {
 exports.updateTask = async function (req, res) {
     try {
         console.log("Hello");
-        
+
         const { taskId } = req.params; // Get task ID from URL params
         const { title, description, deadline, status, worker_name } = req.body; // Fields to update
 
-        const worker = await TaskModel.findOne({ name: worker_name }); // Find the worker by name
-        if (!worker) {
-            return res.status(404).json({ error: "Worker not found" });
-        }
+        // Prepare the update data object with only the provided fields
+        const updateData = {};
+        if (title) updateData.title = title;
+        if (description) updateData.description = description;
+        if (deadline) updateData.deadline = deadline;
+        if (status) updateData.status = status;
+        if (worker_name) updateData.worker_name = worker_name;
 
         // Update the task with the provided fields
         const updatedTask = await TaskModel.findByIdAndUpdate(
@@ -82,10 +85,10 @@ exports.updateTask = async function (req, res) {
         return res.status(200).json(updatedTask);
     } catch (error) {
         console.log(error);
-        
         return res.status(500).json({ error: "Server error while updating task" });
     }
 };
+
 
 exports.deleteTask = async function (req, res) {
     try {

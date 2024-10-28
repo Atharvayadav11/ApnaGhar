@@ -23,21 +23,24 @@ const Sidebar = ({ open, onClose }) => {
       const res = await axios.get("http://localhost:5001/projects/");
       setProjects(res.data);
       console.log(res);
+      
       if (res.data.length > 0) {
-        setSelectedLocation(res.data[0].project_name);
-        setProjectId(res.data[0]._id);
+        const lastProject = res.data[res.data.length - 1];
+        setSelectedLocation(lastProject.project_name);
+        setProjectId(lastProject._id);
       }
-
+  
       localStorage.setItem("projects", JSON.stringify(res.data));
     } catch (err) {
       console.error("Error fetching projects:", err);
     }
   };
-
+  
   useEffect(() => {
     console.log("Use effect triggered");
     fetchProjects();
-  }, []);
+  }, [projectId]); // Runs whenever `projects` changes
+  
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -49,7 +52,7 @@ const Sidebar = ({ open, onClose }) => {
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [projectId]);
 
   const filteredLocations = locations.filter(location =>
     location.name.toLowerCase().includes(searchTerm.toLowerCase())

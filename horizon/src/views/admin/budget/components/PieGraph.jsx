@@ -1,7 +1,7 @@
 import React from 'react';
 import Chart from 'react-apexcharts';
 
-const PieGraph = () => {
+const PieGraph = ({taskExpenses}) => {
   // Define categories and static values
   const categories = ["Flooring", "Painting", "Plumbing", "Wiring", "Furniture"];
   const staticValues = [660, 440, 550, 570, 560]; // Example static values for each category

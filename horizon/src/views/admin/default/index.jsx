@@ -43,7 +43,7 @@ const Dashboard = () => {
       setIsLoading(false);
     };
     fetchData();
-  }, [projectId]);
+  }, []);
 
   if (isLoading) {
     return (
