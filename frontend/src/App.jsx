@@ -12,10 +12,12 @@ import Compare from './pages/Compare';
 import DallEPage from './pages/DallEPage';
 import Progress from './pages/Progress';
 import Explore from './pages/explore/Explore';
-
+import Roommap from './pages/room-map';
 // Import the new chat components
 import AuthPage from './pages/AuthPage';
 import ChatsPage from './pages/ChatsPage';
+import DesignPage from '../../horizon/src/views/design';
+import RumbleTalkChat from './components/Chatapp';
 
 const App = () => {
   // State to manage user authentication for chat
@@ -28,14 +30,19 @@ const App = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/generate" element={<Generate1 />} />
-        <Route path="/profile" element={<Profile />} />
+        {/* <Route path="/generate" element={<Generate1 />} /> */}
+        {/* <Route path="/profile" element={<Profile />} /> */}
         <Route path="/tasks" element={<PaintWall />} />
         <Route path="/paint-cost" element={<PaintCost />} />
-        <Route path='/compare' element={<Compare />} />
-        <Route path='/dallE' element={<DallEPage />} />
+        {/* <Route path='/compare' element={<Compare />} /> */}
+        {/* <Route path='/dallE' element={<DallEPage />} /> */}
         <Route path='/progress' element={<Progress />} />
         <Route path='/explore' element={<Explore />} />
+        <Route path='/design' element={<DesignPage />} />
+        <Route path='/room-map' element={<Roommap />} />
+        <Route path='/chat' element={< RumbleTalkChat/>} />
+
+        {/* <Route path='/paintwall' element={<PaintWall />} /> */}
         
         {/* Chat Route */}
         <Route

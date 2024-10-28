@@ -181,7 +181,7 @@ function PaintCost() {
           )}
         </div>
       </main>
-      <Footer />
+   
     </>
   );
 }

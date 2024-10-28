@@ -1,8 +1,5 @@
 import { useState } from 'react';
-import { Configuration, OpenAIApi } from 'openai';
-
 import Header from '../components/Header';
-import Footer from '../components/Footer';
 import axios from 'axios';
 
 const DallEPage = () => {
@@ -16,63 +13,87 @@ const DallEPage = () => {
   const [decor, setDecor] = useState('');
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
+  const [taskId, setTaskId] = useState(null);
 
-  const configuration = new Configuration({
-    apiKey: "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",
-  });
-
-  const openai = new OpenAIApi(configuration);
-
-  const generateImage = async () => {
-    // setPlaceholder(`Search ${prompt}..`);
+  const generateImages = async () => {
     setLoading(true);
-    const res = await openai.createImage({
-      prompt: `Generate an image of a ${roomPurpose} room that is ${roomSize} square feet with a ${colorScheme} color scheme and a ${roomStyle} style.
-      The room should contain ${furniture} and ${decor},
-      with ${lighting} lighting to create a good atmosphere.
-      The budget for the room design is ${budget}.
-      Please generate an image that meets these specifications.`,
-      n: 1,
-      size: '512x512'
-    });
-    setLoading(false);
-    setResult(res.data.data[0].url);
+    setResult('');
+    
+    // Construct the prompt from the form fields
+    const promptText = `Generate an image of a ${roomPurpose} room that is ${roomSize} square feet with a ${colorScheme} color scheme and a ${roomStyle} style. 
+                       The room should contain ${furniture} and ${decor}, 
+                       with ${lighting} lighting to create a good atmosphere. 
+                       The budget for the room design is ${budget}.`;
+
+    const generateOptions = {
+      method: 'POST',
+      url: 'https://omniinfer.p.rapidapi.com/v2/txt2img',
+      headers: {
+        'X-RapidAPI-Key': 'af09f5741fmshfb2d5865dcff077p122a3cjsn1daf49c68214',
+        'X-RapidAPI-Host': 'omniinfer.p.rapidapi.com',
+        'Content-Type': 'application/json'
+      },
+      data: {
+        prompt: promptText,
+        negative_prompt: 'nsfw, watermark, facial distortion, lip deformity, redundant background, extra fingers, Abnormal eyesight, ((multiple faces)), ((Tongue protruding)), ((extra arm)), extra hands, extra fingers, deformity, missing legs, missing toes, missin hand, missin fingers, (painting by bad-artist-anime:0.9), (painting by bad-artist:0.9), watermark, text, error, blurry, jpeg artifacts, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, artist name, (worst quality, low quality:1.4), bad anatomy',
+        sampler_name: 'Euler a',
+        batch_size: 1,
+        n_iter: 1,
+        steps: 20,
+        cfg_scale: 7,
+        seed: -1,
+        height: 1024,
+        width: 768,
+        model_name: 'meinamix_meinaV9.safetensors'
+      }
+    };
+
+    try {
+      // Initial request to generate image
+      const generateResponse = await axios.request(generateOptions);
+      const receivedTaskId = generateResponse.data.task_id;
+      setTaskId(receivedTaskId);
+
+      // Poll for the result
+      const checkProgress = async () => {
+        const progressOptions = {
+          method: 'GET',
+          url: 'https://omniinfer.p.rapidapi.com/v2/progress',
+          headers: {
+            'X-RapidAPI-Key': 'af09f5741fmshfb2d5865dcff077p122a3cjsn1daf49c68214',
+            'X-RapidAPI-Host': 'omniinfer.p.rapidapi.com'
+          },
+          params: {
+            task_id: receivedTaskId
+          }
+        };
+
+        const progressResponse = await axios.request(progressOptions);
+        const progressData = progressResponse.data;
+
+        if (progressData.status === 'succeeded') {
+          setResult(progressData.imgs[0]); // Set the first image URL
+          setLoading(false);
+        } else if (progressData.status === 'processing') {
+          // Continue polling every 2 seconds
+          setTimeout(checkProgress, 2000);
+        } else {
+          throw new Error('Image generation failed');
+        }
+      };
+
+      // Start polling
+      await checkProgress();
+
+    } catch (error) {
+      console.error('Error generating image:', error);
+      setLoading(false);
+      alert('Failed to generate image. Please try again.');
+    }
   };
-
-
-const generateImages = async () => {
-
- const options = {
-   method: "GET",
-   url: "https://text-to-image7.p.rapidapi.com/",
-   params: {
-     prompt: `Generate an image of a ${roomPurpose} room that is ${roomSize} square feet with a ${colorScheme} color scheme and a ${roomStyle} style.
-      The room should contain ${furniture} and ${decor},
-      with ${lighting} lighting to create a good atmosphere.
-      The budget for the room design is ${budget}.
-      Please generate an image that meets these specifications.`,
-     batch_size: "1",
-     negative_prompt:
-       "ugly, duplicate, morbid, mutilated, [out of frame], extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, blurry, bad anatomy, bad proportions",
-   },
-   headers: {
-     "X-RapidAPI-Key": "0bb53d8ad5msh30838fe4c4d47f9p1a3900jsn67574c17f264",
-     "X-RapidAPI-Host": "text-to-image7.p.rapidapi.com",
-   },
- };
-
- try {
-   const response = await axios.request(options);
-   setResult(response.data.data[0]);
-   console.log(response.data);
- } catch (error) {
-   console.error(error);
- }
-}
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    // Handle form submission here
     generateImages();
   };
 
@@ -194,38 +215,42 @@ const generateImages = async () => {
               />
             </div>
 
-            <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              Submit
+            <button 
+              type="submit" 
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              disabled={loading}
+            >
+              {loading ? 'Generating...' : 'Submit'}
             </button>
           </form>
         </div>
-        <div>
-          {result.length > 0 ? (
-            <img className="result-image" src={result} alt="result" />
+        <div className="flex justify-center items-center h-full">
+          {result ? (
+            <img className="max-w-full max-h-[80vh] object-contain" src={result} alt="Generated room" />
           ) : loading ? (
             <>
-              <div
-                className="text-3xl
-              "
-              >
-                Generating..Please Wait..
-              </div>
-              <div class="lds-ripple">
-                <div></div>
-                <div></div>
+              <div className="text-center">
+                <div className="text-3xl mb-4">Generating... Please Wait</div>
+                <div className="lds-ripple">
+                  <div></div>
+                  <div></div>
+                </div>
               </div>
             </>
           ) : (
             <>
-              <div className="text-3xl font-bold">You'll see the Result here! </div>
-              <div className="text-3xl">😉</div>
+              <div className="text-center">
+                <div className="text-3xl font-bold mb-2">You'll see the Result here!</div>
+                <div className="text-3xl">😉</div>
+              </div>
             </>
           )}
         </div>
       </main>
-      <Footer />
     </div>
   );
 };
 
 export default DallEPage;
+
+
