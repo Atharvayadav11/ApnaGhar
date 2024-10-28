@@ -13,7 +13,7 @@ const projectRoutes = require("./routes/projectRoutes.js");
 const taskRoutes = require("./routes/taskRoutes.js");
 const Paint = require("./models/Paint.js");
 const scrapeIkeaCategory  = require("./utils/scrapper.js");
-const scrapeIkeaCategory = require('./utils/scrapper.js')
+
 
 dotenv.config();
 app.use(express.json());

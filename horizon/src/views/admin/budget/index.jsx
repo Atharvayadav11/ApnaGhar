@@ -60,7 +60,7 @@ const Budget = () => {
 
   useEffect(() => {
     fetchProjects();
-  }, [projectId]); // Added projectId as dependency
+}, []); // Added projectId as dependency
 
   const handleTaskCardClick = (icon, title) => {
     setSelectedTask({ icon, title });
@@ -81,6 +81,8 @@ const Budget = () => {
     setTotalBudget((prevTotalBudget) => prevTotalBudget - newExpense.amount);
 
     const updatedExpensesArray = [...selectedTaskExpenses, newExpense];
+    console.log("Updated:",updatedExpensesArray);
+    
 
     setTaskExpenses({
       ...taskExpenses,

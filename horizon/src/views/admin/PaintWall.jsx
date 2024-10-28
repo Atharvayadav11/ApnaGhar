@@ -26,7 +26,7 @@ function PaintWall() {
 
   useEffect(() => {
     fetchCount();
-  }, [projectId]);
+  }, []);
 
   // Sample data for table
   const data = [

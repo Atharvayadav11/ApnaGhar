@@ -22,6 +22,7 @@ import {
 } from "@chakra-ui/react";
 import axios from "axios";
 import { GrAdd } from "react-icons/gr";
+import { useProjectContext } from 'context/ProjectContext';
 
 export function Modall({ onProjectAdded }) {
   const [projectName, setProjectName] = useState("");
@@ -38,6 +39,7 @@ export function Modall({ onProjectAdded }) {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
+  const {projectId,setProjectId} = useProjectContext();
 
   // Calculate total budget
   const totalBudget = Object.values(budget).reduce((acc, curr) => acc + curr, 0);
@@ -68,6 +70,7 @@ export function Modall({ onProjectAdded }) {
       });
 
       if (response.data) {
+        console.log("Response:",response.data);
         onProjectAdded(response.data);
         toast({
           title: "Project added successfully",
@@ -75,6 +78,7 @@ export function Modall({ onProjectAdded }) {
           duration: 3000,
           isClosable: true,
         });
+        setProjectId(response.data._id)
         onClose();
       }
     } catch (error) {
@@ -223,7 +227,7 @@ export function Modall({ onProjectAdded }) {
               </FormControl>
 
               <Text mt={4} fontWeight="bold" color="blue.500">
-                Total Budget: ${totalBudget}
+                Total Budget: ₹{totalBudget}
               </Text>
             </FormControl>
           </ModalBody>
