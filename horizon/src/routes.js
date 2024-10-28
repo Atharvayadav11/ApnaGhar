@@ -107,12 +107,12 @@ const routes = [
     icon: <MdChat className="h-6 w-6" />,
     component: <Contact />,
   },
-  {
-    name: "Progress",
-    layout: "/admin",
-    path: "view-details/:id",
-    icon: <MdBarChart className="h-6 w-6" />,
-    component: <View />,
-  },
+  // {
+  //   name: "Progress",
+  //   layout: "/admin",
+  //   path: "view-details/:id",
+  //   icon: <MdBarChart className="h-6 w-6" />,
+  //   component: <View />,
+  // },
 ];
 export default routes;

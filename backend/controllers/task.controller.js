@@ -1,26 +1,56 @@
-// controllers/taskController.js
-const TaskModel = require("../models/Tasks.js");
+const { default: mongoose } = require("mongoose");
+const TaskModel  = require("../models/Tasks.js");
 
 exports.getTasks = async function (req, res) {
     try {
-        const tasks = await TaskModel.find();
-        return res.status(200).json(tasks);
+        console.log("Fetching tasks");
+        
+        const project_id  = req.params.id
+        console.log(project_id);
+        
+        const all_projects = await TaskModel.find({project_id: new mongoose.Types.ObjectId(project_id)});
+        console.log(all_projects);
+        
+        return res.status(200).json(all_projects);
     } catch (error) {
         return res.status(500).json({ error: "Server error while fetching tasks" });
     }
 };
 
+exports.getTaskCounts = async function (req, res) {
+    try {
+        console.log("Fetching task counts");
+
+        const project_id = req.params.id;
+        console.log("Project ID:", project_id);
+
+        // Count tasks based on status
+        const totalTasks = await TaskModel.countDocuments({ project_id: new mongoose.Types.ObjectId(project_id) });
+        const pendingTasks = await TaskModel.countDocuments({ project_id: new mongoose.Types.ObjectId(project_id), status: "pending" });
+        const completedTasks = await TaskModel.countDocuments({ project_id: new mongoose.Types.ObjectId(project_id), status: "completed" });
+
+        const taskCounts = {
+            total: totalTasks,
+            pending: pendingTasks,
+            completed: completedTasks,
+        };
+
+        return res.status(200).json(taskCounts);
+    } catch (error) {
+        console.error("Error fetching task counts:", error);
+        return res.status(500).json({ error: "Server error while fetching task counts" });
+    }
+};
+
 exports.createTasks = async function (req, res) {
     try {
-        const { title, description, deadline, status, worker_name } = req.body;
-        const newTask = await TaskModel.create({ 
-            title, 
-            description, 
-            deadline, 
-            status, 
-            worker_name 
-        });
-        return res.status(201).json(newTask);
+        const { title, description, deadline, status, worker_name, project_id } = req.body;
+        console.log("Hello");
+         
+        const newTask = await TaskModel.create({ title, description, deadline, status, worker_name,project_id: new mongoose.Types.ObjectId(project_id) });
+        console.log(newTask);
+        
+        return res.status(200).json(newTask);
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
@@ -28,9 +58,20 @@ exports.createTasks = async function (req, res) {
 
 exports.updateTask = async function (req, res) {
     try {
-        const { taskId } = req.params;
-        const updateData = req.body;
+        console.log("Hello");
 
+        const { taskId } = req.params; // Get task ID from URL params
+        const { title, description, deadline, status, worker_name } = req.body; // Fields to update
+
+        // Prepare the update data object with only the provided fields
+        const updateData = {};
+        if (title) updateData.title = title;
+        if (description) updateData.description = description;
+        if (deadline) updateData.deadline = deadline;
+        if (status) updateData.status = status;
+        if (worker_name) updateData.worker_name = worker_name;
+
+        // Update the task with the provided fields
         const updatedTask = await TaskModel.findByIdAndUpdate(
             taskId,
             updateData,
@@ -43,13 +84,17 @@ exports.updateTask = async function (req, res) {
 
         return res.status(200).json(updatedTask);
     } catch (error) {
+        console.log(error);
         return res.status(500).json({ error: "Server error while updating task" });
     }
 };
 
+
 exports.deleteTask = async function (req, res) {
     try {
         const { taskId } = req.params;
+        console.log("Deleting Task..");
+        
         const deletedTask = await TaskModel.findByIdAndDelete(taskId);
 
         if (!deletedTask) {

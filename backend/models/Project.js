@@ -13,13 +13,21 @@ var ProjectSchema = new mongoose.Schema({
         type: [String]
     },
     budget: {
-        type: String,
-        required: true
+        flooring: { type: Number, required: true },
+        plumbing: { type: Number, required: true },
+        wiring: { type: Number, required: true },
+        painting: { type: Number, required: true },
+        furniture: { type: Number, required: true },
+        total: { type: Number, required: true }
     },
     deadline: {
         type: String
+    },
+    budget_spent:{
+        type:Number
     }
-});
+    
+},{timestamps:true});
 
 var Project = mongoose.model("Project", ProjectSchema);
 
